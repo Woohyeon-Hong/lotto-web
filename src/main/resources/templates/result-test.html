@@ -1,51 +1,50 @@
-<!-- src/main/resources/templates/result-test.html -->
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>당첨내역 응답 확인(테스트)</title>
-  <style>
-    body { font-family: sans-serif; margin: 24px; }
-    table { border-collapse: collapse; width: 420px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background: #f3f3f3; }
-    .summary { margin-top: 16px; }
-    .nav { margin-top: 20px; }
-  </style>
+  <title>로또 결과</title>
 </head>
 <body>
-<h1>당첨내역 응답 확인(테스트)</h1>
+<h1>로또 결과</h1>
 
 <section>
-  <h2>등급별 당첨 개수</h2>
-  <table>
+  <h2>결과 요약</h2>
+  <p><strong>총 수익률:</strong> <span th:text="${result.returnRate} + '%'"></span></p>
+
+  <h3>등수별 당첨 통계</h3>
+  <ul>
+    <li th:each="rankCount : ${result.rankCounts}">
+      <span th:text="${rankCount.key}"></span> :
+      <span th:text="${rankCount.value}"></span> 회
+    </li>
+  </ul>
+</section>
+
+<section>
+  <h2>로또별 상세 결과</h2>
+  <table border="1">
     <thead>
     <tr>
-      <th>등급(Rank)</th>
-      <th>개수(건)</th>
+      <th>로또 번호</th>
+      <th>일치 개수</th>
+      <th>보너스</th>
+      <th>등수</th>
     </tr>
     </thead>
     <tbody>
-    <!-- rankCounts: List<Entry<Rank, Long>> -->
-    <tr th:each="entry : ${result.rankCounts}">
-      <td th:text="${entry.key}">RANK</td>
-      <td th:text="${entry.value}">0</td>
+    <tr th:each="detail : ${result.details}">
+      <td th:text="${detail.lotto.numbers}"></td>
+      <td th:text="${detail.matchedCount}"></td>
+      <td th:text="${detail.bonusMatched} ? 'O' : 'X'"></td>
+      <td th:text="${detail.rank}"></td>
     </tr>
     </tbody>
   </table>
 </section>
 
-<section class="summary">
-  <h2>요약</h2>
-  <p>
-    <strong>수익률:</strong>
-    <span th:text="${#numbers.formatDecimal(result.returnRate, 1, 2)}">0.00</span> %
-  </p>
-</section>
-
-<div class="nav">
-  <a href="/lottos">구매 테스트로 돌아가기</a>
-</div>
+<form th:action="@{/lottos}" method="get">
+  <button type="submit">다시 구매하기</button>
+</form>
 
 </body>
 </html>

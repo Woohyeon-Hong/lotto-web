@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>로또 서비스 홈</title>
+</head>
+<body>
+<h1>로또 시뮬레이터</h1>
+
+<section>
+  <h2>서비스 소개</h2>
+  <p>
+    이 서비스는 사용자가 금액을 입력하면,<br>
+    입력한 금액만큼 자동으로 로또를 발행하고<br>
+    당첨 번호를 입력해 결과를 확인할 수 있는 웹 시뮬레이터입니다.
+  </p>
+</section>
+
+<section>
+  <h2>이용 안내</h2>
+  <ol>
+    <li>1️⃣ 금액을 입력해 로또를 구매합니다.</li>
+    <li>2️⃣ 발행된 번호를 확인합니다.</li>
+    <li>3️⃣ 당첨 번호를 입력해 결과를 확인합니다.</li>
+    <li>4️⃣ 최근 발행 내역을 확인할 수 있습니다.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>시작하기</h2>
+  <p>아래 버튼을 눌러 로또 구매를 시작하세요.</p>
+  <form th:action="@{/lottos}" method="get">
+    <button type="submit">로또 구매하러 가기</button>
+  </form>
+</section>
+</body>
+</html>
