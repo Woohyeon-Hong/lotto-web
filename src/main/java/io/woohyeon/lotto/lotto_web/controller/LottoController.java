@@ -28,7 +28,8 @@ public class LottoController {
     }
 
     @GetMapping()
-    public String displayPurchaseForm() {
+    public String displayPurchaseForm(Model model) {
+        model.addAttribute("expectedStats", lottoService.getLottoExpectedStatistics());
         return "purchase-test";
     }
 

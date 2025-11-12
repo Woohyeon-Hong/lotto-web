@@ -13,6 +13,29 @@
 <body>
 <h1>로또 구매 테스트</h1>
 
+<div class="panel" th:if="${expectedStats != null}">
+    <h2>예상 수익률 및 누적 통계</h2>
+    <p th:if="${expectedStats.totalSamples == 0}">아직 집계할 기록이 없습니다.</p>
+
+    <div th:if="${expectedStats.totalSamples > 0}">
+        <p><strong>집계된 구매:</strong> <span th:text="${expectedStats.totalSamples}"></span> 회</p>
+        <p><strong>평균 수익률:</strong>
+            <span th:text="${#numbers.formatDecimal(expectedStats.averageReturnRate, 1, 1)}"></span>%</p>
+
+        <h3>등수별 누적 통계</h3>
+        <table>
+            <thead><tr><th>등수</th><th>누적 횟수</th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${expectedStats.accumulatedRankCounts}">
+                <td th:text="${e.key}">FIFTH</td>
+                <td th:text="${e.value}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
 <form action="/lottos" method="post">
     <label for="purchaseAmount">구매 금액 (단위: 원)</label><br>
     <input type="number" id="purchaseAmount" name="purchaseAmount" min="1000" step="1000" required>

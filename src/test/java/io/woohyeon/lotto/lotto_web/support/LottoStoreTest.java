@@ -19,7 +19,7 @@ class LottoStoreTest {
     LottoStore lottoStore;
 
     @BeforeEach
-    void setUp() {
+    void beforeEach() {
         lottoStore = new LottoStore();
     }
 
