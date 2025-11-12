@@ -47,10 +47,11 @@
                 </li>
             </ul>
         </td>
-        <td>
-            <form th:action="@{/lottos/retry/{id}(id=${p.id})}" method="get" class="actions">
+        <td class="actions">
+            <form th:action="@{/lottos/retry/{id}(id=${p.id})}" method="get" style="display:inline;">
                 <button type="submit">같은 금액으로 다시 구매</button>
             </form>
+            <a th:href="@{/lottos/results/{id}(id=${p.id})}">결과 보기</a>
         </td>
     </tr>
     </tbody>

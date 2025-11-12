@@ -68,13 +68,12 @@ public class LottoController {
         return "winning-numbers-test";
     }
 
-
-    //TODO: PRG 패턴 적용
+    
     @PostMapping("/results")
-    public String getResults(@RequestParam("lottoNumbers") String rawLottoNumbers,
-                             @RequestParam("bonusNumber") int bonusNumber,
-                             HttpSession session,
-                             Model model) {
+    public String postResults(@RequestParam("lottoNumbers") String rawLottoNumbers,
+                              @RequestParam("bonusNumber") int bonusNumber,
+                              HttpSession session,
+                              Model model) {
         PurchaseResponse purchase = (PurchaseResponse) session.getAttribute("purchase");
         if (purchase == null) return "redirect:/lottos";
 
@@ -85,11 +84,20 @@ public class LottoController {
 
         long historyId = lottoStore.save(purchase, lottoResultResponse);
 
-        model.addAttribute("result", lottoResultResponse);
-        model.addAttribute("purchase", purchase);
-        model.addAttribute("historyId", historyId);
+        return "redirect:/lottos/results/" + historyId;
+    }
 
-        return "result-test";
+    @GetMapping("/results/{id}")
+    public String getResultsPage(@PathVariable("id") long id, Model model) {
+        return lottoStore.findById(id)
+                .map(log -> {
+                    LottoResultResponse result =
+                            new LottoResultResponse(log.rankCounts(), log.returnRate());
+                    model.addAttribute("result", result);
+                    model.addAttribute("historyId", log.id());
+                    return "result-test";
+                })
+                .orElse("redirect:/lottos/histories");
     }
 
     @GetMapping("/histories")
