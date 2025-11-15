@@ -1,121 +1,121 @@
-package io.woohyeon.lotto.lotto_web.controller;
-
-import io.woohyeon.lotto.lotto_web.dto.request.LottoResultRequest;
-import io.woohyeon.lotto.lotto_web.dto.response.LottoResultResponse;
-import io.woohyeon.lotto.lotto_web.dto.response.PurchaseResponse;
-import io.woohyeon.lotto.lotto_web.support.InputParser;
-import io.woohyeon.lotto.lotto_web.service.LottoService;
-import io.woohyeon.lotto.lotto_web.support.LottoRules;
-import io.woohyeon.lotto.lotto_web.support.LottoStore;
-import jakarta.servlet.http.HttpSession;
-import java.util.List;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-@Controller
-@RequestMapping("/lottos")
-public class LottoController {
-
-    private final LottoService lottoService;
-    private final LottoStore lottoStore;
-
-    public LottoController(LottoService lottoService, LottoStore lottoStore) {
-        this.lottoService = lottoService;
-        this.lottoStore = lottoStore;
-    }
-
-    @GetMapping
-    public String displayPurchaseForm(Model model) {
-        model.addAttribute("expectedStats", lottoService.getLottoExpectedStatistics());
-        return "purchase-test";
-    }
-
-    @PostMapping
-    public String purchase(@RequestParam("purchaseAmount") int purchaseAmount,
-                           Model model,
-                           HttpSession session) {
-        PurchaseResponse purchaseResponse = lottoService.purchaseLottosWith(purchaseAmount);
-
-        model.addAttribute("purchase", purchaseResponse);
-        session.setAttribute("purchase", purchaseResponse);
-
-        return "purchase-result-test";
-    }
-
-    @GetMapping("/retry")
-    public String retryPurchase(HttpSession session, Model model) {
-        PurchaseResponse lastPurchase = (PurchaseResponse) session.getAttribute("purchase");
-
-        if (lastPurchase == null) return "redirect:/lottos";
-
-        int retryAmount = lastPurchase.issuedCount() * LottoRules.LOTTO_PRICE;
-        PurchaseResponse newPurchase = lottoService.purchaseLottosWith(retryAmount);
-
-        model.addAttribute("purchase", newPurchase);
-        session.setAttribute("purchase", newPurchase);
-
-        return "purchase-result-test";
-    }
-
-
-    @GetMapping("/winning-numbers")
-    public String displayWinningForm() {
-        return "winning-numbers-test";
-    }
-
-    
-    @PostMapping("/results")
-    public String postResults(@RequestParam("lottoNumbers") String rawLottoNumbers,
-                              @RequestParam("bonusNumber") int bonusNumber,
-                              HttpSession session,
-                              Model model) {
-        PurchaseResponse purchase = (PurchaseResponse) session.getAttribute("purchase");
-        if (purchase == null) return "redirect:/lottos";
-
-        List<Integer> lottoNumbers = InputParser.parseRawNumbers(rawLottoNumbers);
-
-        LottoResultResponse lottoResultResponse = lottoService.calculateStatisticsOf(
-                new LottoResultRequest(purchase.issuedLottos(), lottoNumbers, bonusNumber));
-
-        long historyId = lottoStore.save(purchase, lottoResultResponse);
-
-        return "redirect:/lottos/results/" + historyId;
-    }
-
-    @GetMapping("/results/{id}")
-    public String getResultsPage(@PathVariable("id") long id, Model model) {
-        return lottoStore.findById(id)
-                .map(log -> {
-                    LottoResultResponse result =
-                            new LottoResultResponse(log.rankCounts(), log.returnRate());
-                    model.addAttribute("result", result);
-                    model.addAttribute("historyId", log.id());
-                    return "result-test";
-                })
-                .orElse("redirect:/lottos/histories");
-    }
-
-    @GetMapping("/histories")
-    public String displayRecent(Model model) {
-        model.addAttribute("purchases", lottoStore.findRecentRecords());
-        return "purchase-history-test";
-    }
-
-    @GetMapping("/retry/{id}")
-    public String retryPurchaseFromHistory(@PathVariable("id") int id, Model model, HttpSession session) {
-        return lottoStore.findById(id)
-                .map(log -> {
-                    PurchaseResponse newPurchase = lottoService.purchaseLottosWith(log.purchaseAmount());
-                    model.addAttribute("purchase", newPurchase);
-                    session.setAttribute("purchase", newPurchase);
-                    return "purchase-result-test";
-                })
-                .orElse("redirect:/lottos/histories");
-    }
-
-}
+//package io.woohyeon.lotto.lotto_web.controller;
+//
+//import io.woohyeon.lotto.lotto_web.dto.request.LottoResultRequest;
+//import io.woohyeon.lotto.lotto_web.dto.response.LottoResultResponse;
+//import io.woohyeon.lotto.lotto_web.dto.response.PurchaseResponse;
+//import io.woohyeon.lotto.lotto_web.support.InputParser;
+//import io.woohyeon.lotto.lotto_web.service.LottoService;
+//import io.woohyeon.lotto.lotto_web.support.LottoRules;
+//import io.woohyeon.lotto.lotto_web.repository.LottoStore;
+//import jakarta.servlet.http.HttpSession;
+//import java.util.List;
+//import org.springframework.stereotype.Controller;
+//import org.springframework.ui.Model;
+//import org.springframework.web.bind.annotation.GetMapping;
+//import org.springframework.web.bind.annotation.PathVariable;
+//import org.springframework.web.bind.annotation.PostMapping;
+//import org.springframework.web.bind.annotation.RequestMapping;
+//import org.springframework.web.bind.annotation.RequestParam;
+//
+//@Controller
+//@RequestMapping("/lottos")
+//public class LottoControllerForSSR {
+//
+//    private final LottoService lottoService;
+//    private final LottoStore lottoStore;
+//
+//    public LottoControllerForSSR(LottoService lottoService, LottoStore lottoStore) {
+//        this.lottoService = lottoService;
+//        this.lottoStore = lottoStore;
+//    }
+//
+//    @GetMapping
+//    public String displayPurchaseForm(Model model) {
+//        model.addAttribute("expectedStats", lottoService.getLottoExpectedStatistics());
+//        return "purchase-test";
+//    }
+//
+//    @PostMapping
+//    public String purchase(@RequestParam("purchaseAmount") int purchaseAmount,
+//                           Model model,
+//                           HttpSession session) {
+//        PurchaseResponse purchaseResponse = lottoService.purchaseLottosWith(purchaseAmount);
+//
+//        model.addAttribute("purchase", purchaseResponse);
+//        session.setAttribute("purchase", purchaseResponse);
+//
+//        return "purchase-result-test";
+//    }
+//
+//    @GetMapping("/retry")
+//    public String retryPurchase(HttpSession session, Model model) {
+//        PurchaseResponse lastPurchase = (PurchaseResponse) session.getAttribute("purchase");
+//
+//        if (lastPurchase == null) return "redirect:/lottos";
+//
+//        int retryAmount = lastPurchase.issuedCount() * LottoRules.LOTTO_PRICE;
+//        PurchaseResponse newPurchase = lottoService.purchaseLottosWith(retryAmount);
+//
+//        model.addAttribute("purchase", newPurchase);
+//        session.setAttribute("purchase", newPurchase);
+//
+//        return "purchase-result-test";
+//    }
+//
+//
+//    @GetMapping("/winning-numbers")
+//    public String displayWinningForm() {
+//        return "winning-numbers-test";
+//    }
+//
+//
+//    @PostMapping("/results")
+//    public String postResults(@RequestParam("lottoNumbers") String rawLottoNumbers,
+//                              @RequestParam("bonusNumber") int bonusNumber,
+//                              HttpSession session,
+//                              Model model) {
+//        PurchaseResponse purchase = (PurchaseResponse) session.getAttribute("purchase");
+//        if (purchase == null) return "redirect:/lottos";
+//
+//        List<Integer> lottoNumbers = InputParser.parseRawNumbers(rawLottoNumbers);
+//
+//        LottoResultResponse lottoResultResponse = lottoService.calculateStatisticsOf(
+//                new LottoResultRequest(purchase.issuedLottos(), lottoNumbers, bonusNumber));
+//
+//        long historyId = lottoStore.save(purchase, lottoResultResponse);
+//
+//        return "redirect:/lottos/results/" + historyId;
+//    }
+//
+//    @GetMapping("/results/{id}")
+//    public String getResultsPage(@PathVariable("id") long id, Model model) {
+//        return lottoStore.findById(id)
+//                .map(log -> {
+//                    LottoResultResponse result =
+//                            new LottoResultResponse(log.rankCounts(), log.returnRate());
+//                    model.addAttribute("result", result);
+//                    model.addAttribute("historyId", log.id());
+//                    return "result-test";
+//                })
+//                .orElse("redirect:/lottos/histories");
+//    }
+//
+//    @GetMapping("/histories")
+//    public String displayRecent(Model model) {
+//        model.addAttribute("purchases", lottoStore.findRecentRecords());
+//        return "purchase-history-test";
+//    }
+//
+//    @GetMapping("/retry/{id}")
+//    public String retryPurchaseFromHistory(@PathVariable("id") int id, Model model, HttpSession session) {
+//        return lottoStore.findById(id)
+//                .map(log -> {
+//                    PurchaseResponse newPurchase = lottoService.purchaseLottosWith(log.purchaseAmount());
+//                    model.addAttribute("purchase", newPurchase);
+//                    session.setAttribute("purchase", newPurchase);
+//                    return "purchase-result-test";
+//                })
+//                .orElse("redirect:/lottos/histories");
+//    }
+//
+//}

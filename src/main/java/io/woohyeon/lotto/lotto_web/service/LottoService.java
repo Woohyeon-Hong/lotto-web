@@ -1,80 +1,96 @@
 package io.woohyeon.lotto.lotto_web.service;
 
-import static io.woohyeon.lotto.lotto_web.support.LottoRules.LOTTO_PRICE;
-
-import io.woohyeon.lotto.lotto_web.dto.request.LottoResultRequest;
-import io.woohyeon.lotto.lotto_web.dto.response.ExpectedStatistics;
-import io.woohyeon.lotto.lotto_web.dto.response.IssuedLotto;
-import io.woohyeon.lotto.lotto_web.dto.response.LottoResultResponse;
-import io.woohyeon.lotto.lotto_web.dto.response.PurchaseResponse;
+import io.woohyeon.lotto.lotto_web.dto.request.LottoPurchaseRequest;
+import io.woohyeon.lotto.lotto_web.dto.response.LottoPurchaseResponse;
 import io.woohyeon.lotto.lotto_web.model.Lotto;
 import io.woohyeon.lotto.lotto_web.model.PurchaseAmount;
 import io.woohyeon.lotto.lotto_web.model.PurchaseLog;
-import io.woohyeon.lotto.lotto_web.model.Rank;
-import io.woohyeon.lotto.lotto_web.model.WinningNumbers;
+import io.woohyeon.lotto.lotto_web.model.ResultRecord;
+import io.woohyeon.lotto.lotto_web.repository.ResultStore;
 import io.woohyeon.lotto.lotto_web.support.LottoGenerator;
-import io.woohyeon.lotto.lotto_web.support.LottoStatistics;
-import io.woohyeon.lotto.lotto_web.support.LottoStore;
-import java.util.EnumMap;
+import io.woohyeon.lotto.lotto_web.repository.PurchaseStore;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LottoService {
 
-    private final LottoStore lottoStore;
+    private final PurchaseStore purchaseStore;
+    private final ResultStore resultStore;
 
-    public LottoService(LottoStore lottoStore) {
-        this.lottoStore = lottoStore;
+    @Autowired
+    public LottoService(PurchaseStore purchaseStore, ResultStore resultStore) {
+        this.purchaseStore = purchaseStore;
+        this.resultStore = resultStore;
     }
 
-    public PurchaseResponse purchaseLottosWith(int purchaseAmount) {
-        LottoGenerator lottoGenerator = new LottoGenerator(new PurchaseAmount(purchaseAmount));
+    public LottoPurchaseResponse purchaseLottosWith(LottoPurchaseRequest request) {
+        PurchaseAmount amount = new PurchaseAmount(request.purchaseAmount());
+
+        LottoGenerator lottoGenerator = new LottoGenerator(amount);
         List<Lotto> generatedLottos = lottoGenerator.generateLottos();
-        return PurchaseResponse.from(generatedLottos);
+
+        Long savedId = purchaseStore.save(generatedLottos);
+        PurchaseLog log = getPurchaseOrThrow(savedId);
+
+        return LottoPurchaseResponse.of(
+                log.getId(),
+                log.getPurchaseAmount(),
+                log.getIssuedLottos(),
+                log.getPurchasedAt()
+        );
     }
 
 
-    public LottoResultResponse calculateStatisticsOf(LottoResultRequest request) {
-        WinningNumbers winningNumbers = new WinningNumbers(request.lottoNumbers(), request.bonusNumber());
-
-        List<IssuedLotto> issuedLottos = request.issuedLottos();
-        List<Lotto> lottos = issuedLottos.stream().map(issuedLotto -> new Lotto(issuedLotto.numbers())).toList();
-
-        LottoStatistics lottoStatistics = new LottoStatistics(winningNumbers, lottos,
-                request.issuedLottos().size() * LOTTO_PRICE);
-
-        lottoStatistics.compute();
-
-        return LottoResultResponse.from(lottoStatistics);
+    private PurchaseLog getPurchaseOrThrow(Long id) {
+        return purchaseStore.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("[ERROR] 구매 id를 찾을 수 없습니다. id = " + id));
     }
 
-    public ExpectedStatistics getLottoExpectedStatistics() {
-        List<PurchaseLog> logs = lottoStore.findRecentRecords();
-        int totalSamples = logs.size();
-
-        if (totalSamples == 0) {
-            return new ExpectedStatistics(0, 0.0, List.of());
-        }
-
-        double averageReturnRate = logs.stream()
-                .mapToDouble(PurchaseLog::returnRate)
-                .average()
-                .orElse(0.0);
-
-        Map<Rank, Long> totals = new EnumMap<>(Rank.class);
-        for (PurchaseLog log : logs) {
-            for (Entry<Rank, Long> rankCount : log.rankCounts()) {
-                totals.merge(rankCount.getKey(), rankCount.getValue(), Long::sum);
-            }
-        }
-
-        List<Entry<Rank, Long>> accumulatedRankCounts = totals.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .toList();
-
-        return new ExpectedStatistics(totalSamples, averageReturnRate, accumulatedRankCounts);
+    private ResultRecord getResultOrThrow(Long purchaseId) {
+        return resultStore.findByPurchaseId(purchaseId)
+                .orElseThrow(() -> new IllegalArgumentException("[ERROR] 결과 정보를 찾을 수 없습니다. purchaseId=" + purchaseId));
     }
+
+//    public LottoResultResponse calculateStatisticsOf(LottoResultRequest request) {
+//        WinningNumbers winningNumbers = new WinningNumbers(request.lottoNumbers(), request.bonusNumber());
+//
+//        List<IssuedLottoResponse> issuedLottoResponses = request.issuedLottoResponses();
+//        List<Lotto> lottos = issuedLottoResponses.stream().map(issuedLotto -> new Lotto(issuedLotto.numbers())).toList();
+//
+//        LottoStatistics lottoStatistics = new LottoStatistics(winningNumbers, lottos,
+//                request.issuedLottoResponses().size() * LOTTO_PRICE);
+//
+//        lottoStatistics.compute();
+//
+//        return LottoResultResponse.from(lottoStatistics);
+//    }
+//
+//    public ExpectedStatistics getLottoExpectedStatistics() {
+//        List<PurchaseLog> logs = purchaseStore.findRecentRecords();
+//        int totalSamples = logs.size();
+//
+//        if (totalSamples == 0) {
+//            return new ExpectedStatistics(0, 0.0, List.of());
+//        }
+//
+//        double averageReturnRate = logs.stream()
+//                .mapToDouble(PurchaseLog::returnRate)
+//                .average()
+//                .orElse(0.0);
+//
+//        Map<Rank, Long> totals = new EnumMap<>(Rank.class);
+//        for (PurchaseLog log : logs) {
+//            for (Entry<Rank, Long> rankCount : log.rankCounts()) {
+//                totals.merge(rankCount.getKey(), rankCount.getValue(), Long::sum);
+//            }
+//        }
+//
+//        List<Entry<Rank, Long>> accumulatedRankCounts = totals.entrySet().stream()
+//                .sorted(Map.Entry.comparingByKey())
+//                .toList();
+//
+//        return new ExpectedStatistics(totalSamples, averageReturnRate, accumulatedRankCounts);
+//    }
 }

@@ -8,7 +8,7 @@
   <p><strong>발행 수:</strong> <span th:text="${purchase.issuedCount}"></span> 장</p>
   <h2>발행된 로또 번호</h2>
   <ol>
-    <li th:each="lotto : ${purchase.issuedLottos}">
+    <li th:each="lotto : ${purchase.issuedLottoResponses}">
       <span th:text="${lotto.numbers}"></span>
       <span> (발행 시각:
       <span th:text="${#temporals.format(lotto.issuedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
