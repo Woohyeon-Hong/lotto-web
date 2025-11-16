@@ -7,7 +7,7 @@ import java.util.List;
 public record PurchaseDetailResponse(
         long id,
         int purchaseAmount,
-        int LottoCount,
+        int lottoCount,
         List<IssuedLottoResponse> lottos,
         LocalDateTime purchasedAt
 ) {

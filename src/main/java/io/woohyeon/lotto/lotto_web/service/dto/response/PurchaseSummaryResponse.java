@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 public record PurchaseSummaryResponse(
         long id,
         int purchaseAmount,
-        int LottoCount,
+        int lottoCount,
         LocalDateTime purchasedAt,
         boolean hasResult,
         Double returnRate
