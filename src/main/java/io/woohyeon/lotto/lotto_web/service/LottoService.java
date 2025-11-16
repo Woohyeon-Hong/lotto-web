@@ -66,7 +66,7 @@ public class LottoService {
         return PurchaseDetailResponse.from(log);
     }
 
-    public LottoResultResponse createResult(Long purchaseId,
+    public LottoResultResponse updateResult(Long purchaseId,
                                             LottoResultRequest request) {
         PurchaseLog purchase = getPurchaseOrThrow(purchaseId);
 
@@ -93,6 +93,18 @@ public class LottoService {
                 rankCounts);
     }
 
+    public LottoResultResponse getResult(Long purchaseId) {
+        PurchaseLog purchaseLog = getPurchaseOrThrow(purchaseId);
+        ResultRecord resultRecord = getResultOrThrow(purchaseId);
+
+        return new LottoResultResponse(
+                purchaseId,
+                purchaseLog.getPurchaseAmount(),
+                resultRecord.getReturnRate(),
+                resultRecord.getRankCounts()
+        );
+    }
+
     private PurchaseLog getPurchaseOrThrow(Long id) {
         return purchaseStore.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("[ERROR] 구매 id를 찾을 수 없습니다. id = " + id));
@@ -108,45 +120,4 @@ public class LottoService {
                 .setScale(LottoRules.ROUNDING_SCALE, RoundingMode.HALF_UP)
                 .doubleValue();
     }
-
-//    public LottoResultResponse calculateStatisticsOf(LottoResultRequest request) {
-//        WinningNumbers winningNumbers = new WinningNumbers(request.lottoNumbers(), request.bonusNumber());
-//
-//        List<IssuedLottoResponse> issuedLottoResponses = request.issuedLottoResponses();
-//        List<Lotto> lottos = issuedLottoResponses.stream().map(issuedLotto -> new Lotto(issuedLotto.numbers())).toList();
-//
-//        LottoStatistics lottoStatistics = new LottoStatistics(winningNumbers, lottos,
-//                request.issuedLottoResponses().size() * LOTTO_PRICE);
-//
-//        lottoStatistics.compute();
-//
-//        return LottoResultResponse.from(lottoStatistics);
-//    }
-//
-//    public ExpectedStatistics getLottoExpectedStatistics() {
-//        List<PurchaseLog> logs = purchaseStore.findRecentRecords();
-//        int totalSamples = logs.size();
-//
-//        if (totalSamples == 0) {
-//            return new ExpectedStatistics(0, 0.0, List.of());
-//        }
-//
-//        double averageReturnRate = logs.stream()
-//                .mapToDouble(PurchaseLog::returnRate)
-//                .average()
-//                .orElse(0.0);
-//
-//        Map<Rank, Long> totals = new EnumMap<>(Rank.class);
-//        for (PurchaseLog log : logs) {
-//            for (Entry<Rank, Long> rankCount : log.rankCounts()) {
-//                totals.merge(rankCount.getKey(), rankCount.getValue(), Long::sum);
-//            }
-//        }
-//
-//        List<Entry<Rank, Long>> accumulatedRankCounts = totals.entrySet().stream()
-//                .sorted(Map.Entry.comparingByKey())
-//                .toList();
-//
-//        return new ExpectedStatistics(totalSamples, averageReturnRate, accumulatedRankCounts);
-//    }
 }

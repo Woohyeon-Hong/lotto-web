@@ -58,11 +58,17 @@ public class LottoRestController {
     }
 
     @PutMapping("/{id}/result")
-    public ResponseEntity<LottoResultResponse> createOrUpdateResult(
+    public ResponseEntity<LottoResultResponse> updateResult(
             @PathVariable("id") long id,
             @RequestBody LottoResultRequest request
     ) {
-        LottoResultResponse response = lottoService.createResult(id, request);
+        LottoResultResponse response = lottoService.updateResult(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/result")
+    public ResponseEntity<LottoResultResponse> getResult(@PathVariable("id") long id) {
+        LottoResultResponse response = lottoService.getResult(id);
         return ResponseEntity.ok(response);
     }
 }
