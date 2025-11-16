@@ -14,10 +14,12 @@ import io.woohyeon.lotto.lotto_web.service.dto.response.LottoPurchaseResponse;
 import io.woohyeon.lotto.lotto_web.repository.ResultStore;
 import io.woohyeon.lotto.lotto_web.service.dto.response.LottoResultResponse;
 import io.woohyeon.lotto.lotto_web.service.dto.response.PurchaseDetailResponse;
+import io.woohyeon.lotto.lotto_web.service.dto.response.PurchaseSummaryResponse;
 import io.woohyeon.lotto.lotto_web.service.dto.response.PurchasesResponse;
 import io.woohyeon.lotto.lotto_web.repository.PurchaseStore;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,9 +90,23 @@ class LottoServiceTest {
         //then
         assertThat(result.count()).isEqualTo(purchaseRequests.size());
 
+        //구매 내역은 최신순으로 정렬되야 한다.
+        List<Integer> expectedAmountsDesc = purchaseRequests.stream()
+                .map(LottoPurchaseRequest::purchaseAmount)
+                .sorted(Comparator.reverseOrder())
+                .toList();
+
+        // 응답 검사
         for (int i = 0; i < result.count(); i++) {
-            assertThat(result.purchases().get(i).LottoCount())
-                    .isEqualTo(purchaseRequests.get(i).purchaseAmount() / LOTTO_PRICE);
+            PurchaseSummaryResponse summary = result.purchases().get(i);
+
+            // ticketCount 검증
+            assertThat(summary.LottoCount())
+                    .isEqualTo(expectedAmountsDesc.get(i) / LOTTO_PRICE);
+
+            // 아직 결과 생성 전이므로
+            assertThat(summary.hasResult()).isFalse();
+            assertThat(summary.returnRate()).isNull();
         }
     }
 

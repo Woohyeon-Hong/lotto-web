@@ -20,6 +20,7 @@ import io.woohyeon.lotto.lotto_web.support.LottoRules;
 import io.woohyeon.lotto.lotto_web.support.LottoStatistics;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,8 +55,22 @@ public class LottoService {
     }
 
     public PurchasesResponse getPurchaseSummaries() {
-        List<PurchaseSummaryResponse> summaries = purchaseStore.findAll().stream()
-                .map(PurchaseSummaryResponse::from)
+        List<PurchaseLog> logs = purchaseStore.findAll();
+
+        logs.sort(Comparator.comparing(PurchaseLog::getPurchasedAt).reversed());
+
+        List<PurchaseSummaryResponse> summaries = logs.stream()
+                .map(log -> {
+                    ResultRecord record = resultStore.findByPurchaseId(log.getId())
+                            .orElse(null);
+
+                    boolean hasResult = (record != null);
+
+                    Double returnRate = null;
+                    if (record != null) returnRate = record.getReturnRate();
+
+                    return PurchaseSummaryResponse.from(log, hasResult, returnRate);
+                })
                 .toList();
 
         return PurchasesResponse.from(summaries);
