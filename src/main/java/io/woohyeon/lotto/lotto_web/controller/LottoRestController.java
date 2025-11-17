@@ -73,7 +73,7 @@ public class LottoRestController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
+    @GetMapping("/statistics")
     public ResponseEntity<ExpectedStatistics> getStatistics() {
         ExpectedStatistics stats = lottoService.getStatistics();
         return ResponseEntity.ok(stats);
