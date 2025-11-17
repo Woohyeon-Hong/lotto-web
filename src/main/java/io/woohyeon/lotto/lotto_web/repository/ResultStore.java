@@ -20,12 +20,14 @@ public class ResultStore {
     public Long save(
             long purchaseId,
             WinningNumbers winningNumbers,
+            int totalPrize,
             double returnRate,
             List<RankCount> rankCounts
     ) {
         ResultRecord record = new ResultRecord(
                 purchaseId,
                 winningNumbers,
+                totalPrize,
                 returnRate,
                 rankCounts,
                 LocalDateTime.now()

@@ -31,7 +31,7 @@ public class LottoRestController {
     }
 
     @PostMapping
-    public ResponseEntity<LottoPurchaseResponse> createPurchase(
+    public ResponseEntity<Void> createPurchase(
             @RequestBody LottoPurchaseRequest request
             ) {
         LottoPurchaseResponse response = lottoService.purchaseLottosWith(request);

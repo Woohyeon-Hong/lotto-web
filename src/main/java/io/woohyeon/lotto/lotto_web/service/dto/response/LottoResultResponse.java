@@ -6,6 +6,7 @@ import java.util.List;
 public record LottoResultResponse(
         long purchaseId,
         int purchaseAmount,
+        int totalPrize,
         double returnRate,
         List<RankCount> rankCounts
 ) { }

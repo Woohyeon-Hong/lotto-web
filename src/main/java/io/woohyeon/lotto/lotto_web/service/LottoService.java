@@ -1,5 +1,6 @@
 package io.woohyeon.lotto.lotto_web.service;
 
+import io.woohyeon.lotto.lotto_web.model.Rank;
 import io.woohyeon.lotto.lotto_web.model.RankCount;
 import io.woohyeon.lotto.lotto_web.model.WinningNumbers;
 import io.woohyeon.lotto.lotto_web.service.dto.request.LottoPurchaseRequest;
@@ -22,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -97,13 +99,20 @@ public class LottoService {
         );
         statistics.compute();
 
-        List<RankCount> rankCounts = RankCount.fromEntries(statistics.getRankCounts());
+        List<Map.Entry<Rank, Long>> rankEntries = statistics.getRankCounts();
+        List<RankCount> rankCounts = RankCount.fromEntries(rankEntries);
+
+        int totalPrize = rankEntries.stream()
+                .mapToInt(entry -> entry.getKey().getPrize() * entry.getValue().intValue())
+                .sum();
+
         double roundedReturnRate = roundToScale(statistics.getRateOfReturn());
 
-        resultStore.save(purchaseId, winningNumbers, roundedReturnRate, rankCounts);
+        resultStore.save(purchaseId, winningNumbers, totalPrize, roundedReturnRate, rankCounts);
 
         return new LottoResultResponse(purchaseId,
                 purchase.getPurchaseAmount(),
+                totalPrize,
                 roundedReturnRate,
                 rankCounts);
     }
@@ -115,6 +124,7 @@ public class LottoService {
         return new LottoResultResponse(
                 purchaseId,
                 purchaseLog.getPurchaseAmount(),
+                resultRecord.getTotalPrize(),
                 resultRecord.getReturnRate(),
                 resultRecord.getRankCounts()
         );
