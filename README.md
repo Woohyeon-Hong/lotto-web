@@ -3,13 +3,11 @@
 CLI 기반 로또 프로그램을 웹 애플리케이션으로 확장한 REST API 서버입니다.  
 로또 구매, 당첨 결과 계산, 누적 통계를 제공하는 API를 포함합니다.
 
----
 ## 실행 방법
 ```bash
 ./gradlew bootRun
 ```
 
----
 ## 주요 기능
 - 구매 금액을 입력하면 자동으로 로또 번호를 생성 및 저장
 - 구매 내역 조회 (목록 / 상세)
@@ -17,7 +15,6 @@ CLI 기반 로또 프로그램을 웹 애플리케이션으로 확장한 REST AP
 - 모든 구매의 결과를 기반으로 누적 통계 제공
 - 일관된 예외 응답 포맷을 갖춘 REST API 제공
 
----
 ## 기술 스택
 - Java 21
 - Spring Boot 3.5.7
@@ -25,7 +22,6 @@ CLI 기반 로또 프로그램을 웹 애플리케이션으로 확장한 REST AP
 - JUnit 5
 - In-memory Repository (데이터베이스 미사용)
 
----
 ## 프로젝트 구조
 
 ```text
@@ -41,7 +37,6 @@ src/main/java/io.woohyeon.lotto.lotto_web
     └── response       # Response DTO
 ```
 
----
 ## API 명세
 
 ### 1. 로또 구매 생성
